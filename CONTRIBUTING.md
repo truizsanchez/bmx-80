@@ -89,6 +89,47 @@ the code is wrong.
 - **The engine is held to a record.** A change that means to change how a race rides says
   so in its pull request and records again with `python tests/test_engine_golden.py`.
 
+## Courses, as files
+
+A course is JSON, drawn in the editor or written by hand. It is built the way the original
+builds its own: a ring of 16 by 256 **metatiles** of 16x16 pixels, and a course is a list of
+**pieces** stamped onto it. Where two pieces land on the same cell they are merged tile by
+tile, so the shape where one thing meets another never has to be a piece of its own.
+
+- `art/terrain/<name>.png` -- a tile, 8x8, in the four shades. A drawing.
+- `maps/tiles.json` -- what each tile **collides as**: solid, soft, no wheelie, a rock, and
+  which of the engine's 32 directions it runs in. Declared, never read off the picture.
+- `maps/metatiles.json` -- four tile names each, top left to bottom right. `-` lets whatever
+  is underneath through.
+- `maps/pieces.json` -- a grid of metatile names: what a course puts down. `.` stamps nothing.
+- `maps/labels.json` -- a name you can read and a kind (ground, slope up, curve, sign...)
+  for every metatile and piece. The editor's palette is grouped by kind, and the name shows
+  on the status line under the pointer.
+- `maps/courses/<name>.json` -- the pieces at `[row, col, name]`, the crates at
+  `[kind, row, col]`, the three levels' time limits, and the stretches where the computer's
+  bike is put back.
+
+The tiles, metatiles and pieces are the original's, under its own numbers in hex (`t45` is its
+tile 0x45, `p57` its piece 0x57), and the eight courses are the original's eight written in
+them. `python tools/vocab_from_rom.py --rom <file.gb> --check` builds every course out of
+`maps/` and compares it, cell by cell and ride by ride, with the one your cartridge builds.
+`maps/read.py` describes the files at more length.
+
+**Which directory a course is in is what kind of course it is**; nothing in the file says:
+
+- `maps/courses/` holds the courses the project ships: committed, and on the front end.
+- `maps/drafts/` is yours: gitignored, and the `custom` tab of FREE RIDE -- with a cartridge
+  or without one, drawn in the cartridge's art and sounding with one of its tunes when there is
+  one.
+- `maps/enhanced/` is the **enhanced** vocabulary: the original's with this game's own tiles,
+  metatiles and pieces added over it. Its `drafts/` are yours and on FREE RIDE with the rest;
+  in the editor its own pieces are the `extra` tab.
+
+A name may live in one directory only; a name in two is refused at startup rather than
+resolved, so a copy has to be renamed. **No test measures what a course is like**: the suite
+asks that every course loads, that its schema is clean, that it reads back as itself and
+that it draws. So a course can be retuned for how it plays without a test in the way.
+
 ## Licensing
 
 Everything you contribute is committed under this repository's MIT licence, so it has to be

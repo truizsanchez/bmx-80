@@ -124,63 +124,43 @@ Linux: the repository's `release` workflow builds that one on a Windows machine.
 
 ## Making a course
 
-A course is JSON, drawn in the editor or written by hand. It is built the way the original
-builds its own: a ring of 16 by 256 **metatiles** of 16x16 pixels, and a course is a list of
-**pieces** stamped onto it. Where two pieces land on the same cell they are merged tile by
-tile, so the shape where one thing meets another never has to be a piece of its own.
-
-- `art/terrain/<name>.png` -- a tile, 8x8, in the four shades. A drawing.
-- `maps/tiles.json` -- what each tile **collides as**: solid, soft, no wheelie, a rock, and
-  which of the engine's 32 directions it runs in. Declared, never read off the picture.
-- `maps/metatiles.json` -- four tile names each, top left to bottom right. `-` lets whatever
-  is underneath through.
-- `maps/pieces.json` -- a grid of metatile names: what a course puts down. `.` stamps nothing.
-- `maps/labels.json` -- a name you can read and a kind (ground, slope up, curve, sign...)
-  for every metatile and piece. The editor's palette is grouped by kind, and the name shows
-  on the status line under the pointer.
-- `maps/courses/<name>.json` -- the pieces at `[row, col, name]`, the crates at
-  `[kind, row, col]`, the three levels' time limits, and the stretches where the computer's
-  bike is put back.
-
-The tiles, metatiles and pieces are the original's, under its own numbers in hex (`t45` is its
-tile 0x45, `p57` its piece 0x57), and the eight courses are the original's eight written in
-them. `python tools/vocab_from_rom.py --rom <file.gb> --check` builds every course out of
-`maps/` and compares it, cell by cell and ride by ride, with the one your cartridge builds.
-`maps/read.py` describes the files at more length.
+The game comes with an editor. It opens a course by name, or starts a new one if the name
+is not taken:
 
 ```bash
-python main.py --edit <name>                  # a course by name, or a new draft in maps/drafts/
-python main.py --edit <name> --enhanced       # ...a new draft in the enhanced vocabulary
-python main.py --edit <name> --rom <file.gb>  # ...its tiles in your cartridge's own art
+bmx-80 --edit <name>                          # the release
+python main.py --edit <name>                  # from the source
+python main.py --edit <name> --rom <file.gb>  # ...drawn in your cartridge's own art
+python main.py --edit <name> --enhanced       # ...a new draft with this game's extra pieces
 ```
 
-Pick a piece -- or a single metatile -- from the palette and click to stamp it **on top**;
-what is under the pointer is already drawn merged, so what you see is what the game builds.
-Drag along a row to repeat it, right-click takes away what is on top, ALT-click picks it up.
-The order of the stampings is the merge: `TAB` walks what is stacked under the pointer and
-`[` `]` move it down or up. The `things` tab puts down crates, and a drag along a surface
-lays a stretch where the computer's bike is put back; the three clocks are on the toolbar.
-`Z` zooms, `C` shows the collision, `G` the game's view from the pointer, `O` the whole lap,
-and `R` rides what is drawn in a window of its own. The status line names whatever the pointer
-is over -- a piece, a metatile, a thing, and what is stacked on the map under it. The orange
-lines along the ground are the stretches where the computer's bike is put back when it falls
-behind. `CTRL-S` saves, `CTRL-Z`/`CTRL-Y` undo
-and redo, `H` lists the keys. Every click goes to `./editor.log`.
+**The editor has not been tested as thoroughly as the game.** It works for drawing and riding
+a course, but expect rough edges, and save often. A bug report with the editor's log (see
+below) is very welcome.
 
-**Which directory a course is in is what kind of course it is**; nothing in the file says:
+A course is built the way the original builds its own: **pieces** -- a stretch of road, a
+ramp, a loop -- put down on a grid. Where two pieces overlap they are merged, so what you see
+under the pointer is exactly what the game will build.
 
-- `maps/courses/` holds the courses the project ships: committed, and on the front end.
-- `maps/drafts/` is yours: gitignored, and the `custom` tab of FREE RIDE -- with a cartridge
-  or without one, drawn in the cartridge's art and sounding with one of its tunes when there is
-  one.
-- `maps/enhanced/` is the **enhanced** vocabulary: the original's with this game's own tiles,
-  metatiles and pieces added over it. Its `drafts/` are yours and on FREE RIDE with the rest;
-  in the editor its own pieces are the `extra` tab.
+- **Draw**: pick a piece (or a single block) from the palette on the right and click to put
+  it down on top. Drag along a row to repeat it. Right-click takes away what is on top;
+  ALT-click picks it up.
+- **Order**: `TAB` walks what is stacked under the pointer, and `[` `]` move it down or up.
+- **Things**: the `things` tab puts down the crates. A drag along a surface marks a stretch
+  where the computer's bike is put back when it falls behind (the orange lines). The three
+  levels' clocks are on the toolbar.
+- **Look**: `Z` zooms, `C` shows what the bike collides with, `G` the game's own view from the
+  pointer, `O` the whole lap. The status line names whatever is under the pointer.
+- **Ride it**: `R` rides what is drawn, in a window of its own.
+- `CTRL-S` saves, `CTRL-Z` / `CTRL-Y` undo and redo, `H` lists every key.
 
-A name may live in one directory only; a name in two is refused at startup rather than
-resolved, so a copy has to be renamed. **No test measures what a course is like**: the suite
-asks that every course loads, that its schema is clean, that it reads back as itself and
-that it draws. So a course can be retuned for how it plays without a test in the way.
+What you draw is a **draft**: it goes in `maps/drafts/` (in `bmx-80-data/` beside the
+executable, for the release), and you ride it from **FREE RIDE**, on the `custom` tab -- with
+a cartridge or without one. Every click in the editor is written to `editor.log`, which is
+what to attach to a bug report.
+
+A course is a JSON file underneath; [`CONTRIBUTING.md`](CONTRIBUTING.md#courses-as-files)
+describes the files, for anyone who wants to write one by hand or change the pieces.
 
 ## Working on it
 

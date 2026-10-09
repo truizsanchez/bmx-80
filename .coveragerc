@@ -1,0 +1,43 @@
+# What a coverage run has to be told here, and why each line is not a default.
+#
+# Anything wanting a second window has to be driven in a **subprocess**, because
+# `conftest.py` has already initialized Pyxel and a process gets one window --
+# and `pytest -n auto` is subprocesses all the way down either way. Coverage does
+# not follow one on its own, so without this file a module exercised by dozens of
+# tests reports a fraction of what it ran. A number that says something is
+# untested is worse than no number: it invites somebody to delete something live,
+# or to rewrite tests that already exist.
+
+[run]
+# Each process writes its own data file, and `coverage combine` adds them up.
+# Required for the subprocess above, and for `pytest -n auto`, whose xdist
+# workers are subprocesses too. What *arms* those processes is
+# `COVERAGE_PROCESS_START`, which `tests/conftest.py` sets so that nobody has to
+# remember it -- forgetting it is silent and gives the 12% back.
+parallel = True
+
+# Under `-n auto` the controller process runs no test code at all: the workers
+# do, and they are counted. So both of these are what a *correct* run says here,
+# every time -- nothing was collected in the controller, and it imported none of
+# the source. A warning that fires on every good run is one people learn to
+# ignore, which is how a real one gets ignored too.
+disable_warnings =
+    no-data-collected
+    module-not-imported
+
+# What the project ships. `tests/` is left out on purpose: it runs, and how much
+# of it ran is not a question worth an answer.
+source =
+    game
+    maps
+    tools
+    main
+
+[report]
+# The vendored widget toolkit is deliberately kept whole -- its contract is
+# diffability against upstream Pyxel, so a method nothing calls is *declared*
+# rather than dead, and its coverage is not a number anybody here may act on.
+# Left in the report anyway, because after the subprocess is counted it is the
+# clearest evidence the session really does drive the mouse capture.
+show_missing = False
+skip_covered = False

@@ -1,0 +1,34 @@
+# ...and what working on it needs on top: the suite, and running it on more
+# than one core. `-r` rather than a copy, so there is one place a runtime
+# version is written down.
+-r requirements.txt
+
+pytest==9.1.1
+# The suite is several hundred tests and about half a minute of mostly-CPU on
+# one core; spread over every core it is a few seconds, which is the difference
+# between running it after a change and running it before a commit. Counted in
+# orders of magnitude on purpose -- an exact figure here was wrong for a long
+# time, and the ratio is the thing worth knowing.
+pytest-xdist==3.8.0
+
+# The two checkers the gate runs. `pyflakes` and not a whole linter: the repo
+# has no style config and does not want one, and what is worth catching before a
+# commit is an unused import or a name that is not there. `mypy` is not run in
+# strict mode over everything -- see `mypy.ini`, which turns on one thing for
+# the whole repo and the full set for the two files that are annotated.
+pyflakes==3.4.0
+mypy==2.3.1
+
+# Not part of the gate -- no threshold is enforced and none is wanted -- but
+# declared, because the answer it gives is wrong without `.coveragerc` beside
+# it, and a checkout that has the config and not the tool is the way somebody
+# ends up measuring with neither.
+coverage==7.16.0
+
+# What `tools/build_exe.py` freezes the game with, for the zip a player is
+# handed. Not `pyxel package` / `pyxel app2exe`: the first zips whatever else is
+# under the directory (`.venv/`, `tests/`) and the second, which is this same
+# tool underneath, reads its hidden imports off the startup script alone rather
+# than off the import graph. Dev-only -- running the game from a checkout needs
+# nothing from this file.
+pyinstaller==6.22.2

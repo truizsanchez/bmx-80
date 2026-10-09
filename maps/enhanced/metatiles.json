@@ -1,0 +1,14 @@
+{
+ "flag_top": [
+  "flag_cloth",
+  "-",
+  "flag_pole",
+  "-"
+ ],
+ "flag_foot": [
+  "flag_base",
+  "-",
+  "-",
+  "-"
+ ]
+}

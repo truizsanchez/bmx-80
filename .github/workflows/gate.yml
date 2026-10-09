@@ -1,0 +1,41 @@
+# The gate, on every pull request and every push to main: the suite, the two
+# checkers, the self-test and the three art checks -- the same list AGENTS.md
+# gives, run where nobody's own checkout can make it pass.
+#
+# Linux only, and for the reason `release.yml` gives: `art/` is committed byte
+# for byte out of a Linux zlib, and one rule compares those bytes.
+name: gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      # Pyxel's extension links the system SDL2; see `release.yml`.
+      - run: sudo apt-get update && sudo apt-get install -y libsdl2-2.0-0
+
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements-dev.txt
+
+      - run: python -m pytest tests/ -q -n auto
+      - run: python -m mypy
+      - run: python -m pyflakes game maps tools tests main.py
+      - run: python main.py --selftest
+      - run: python tools/tile_gen.py --check
+      - run: python tools/sprite_gen.py --check
+      - run: python tools/art_check.py

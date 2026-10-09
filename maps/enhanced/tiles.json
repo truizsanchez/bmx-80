@@ -1,0 +1,11 @@
+{
+ "flag_cloth": {
+  "solid": false
+ },
+ "flag_pole": {
+  "solid": false
+ },
+ "flag_base": {
+  "solid": false
+ }
+}
